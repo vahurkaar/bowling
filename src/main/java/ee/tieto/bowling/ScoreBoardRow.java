@@ -30,6 +30,27 @@ public class ScoreBoardRow {
         return giveTurnToOpponent;
     }
 
+	public Integer getTotalScore() {
+		Integer sum = 0;
+
+		for (ScoreBoardRowColumn column : columns) {
+			Integer score = column.getTotalScore();
+			if (score != null) {
+				sum += score;
+			}
+		}
+
+		return sum;
+	}
+
+	public void finalizeScore() {
+		recalculateColumnScores(true);
+	}
+
+	public boolean isFull() {
+		return columns.size() >= COLUMN_LIMIT && !getLastColumn().canInsertScores();
+	}
+
 	private boolean addScoreToRow(Integer score) {
 		boolean isNextPlayersTurn;
 		if (getLastColumn() != null && getLastColumn().canInsertScores()) {
@@ -62,7 +83,7 @@ public class ScoreBoardRow {
         return COLUMN_LIMIT - columns.size() == 1;
     }
 
-    public ScoreBoardRowColumn getLastColumn() {
+    private ScoreBoardRowColumn getLastColumn() {
         int numberOfColumns = columns.size();
 
         if (numberOfColumns > 0) {
@@ -72,32 +93,11 @@ public class ScoreBoardRow {
         return null;
     }
 
-    public boolean isFull() {
-        return columns.size() >= COLUMN_LIMIT && !getLastColumn().canInsertScores();
-    }
-
-    public Integer getTotalScore() {
-        Integer sum = 0;
-
-        for (ScoreBoardRowColumn column : columns) {
-            Integer score = column.getTotalScore();
-            if (score != null) {
-                sum += score;
-            }
-        }
-
-        return sum;
-    }
-
     private void recalculateColumnScores(boolean alwaysAssignScore) {
         for (int i = 0; i < columns.size(); i++) {
             ScoreBoardRowColumn column = columns.get(i);
 			column.calculateTotalScore(i, columns, alwaysAssignScore);
         }
-    }
-
-    public void finalizeScore() {
-        recalculateColumnScores(true);
     }
 
     public List<ScoreBoardRowColumn> getColumns() {

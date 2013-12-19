@@ -52,6 +52,12 @@ public class ScoreBoard {
 		return isTableFull;
 	}
 
+	public void finalizeBoard() {
+		for (ScoreBoardRow row : scoreBoardTableRows.values()) {
+			row.finalizeScore();
+		}
+	}
+
 	public Player getWinner() {
 		Player winner = null;
 		Integer maxScore = 0;
@@ -65,12 +71,6 @@ public class ScoreBoard {
 		}
 
 		return winner;
-	}
-
-	public void finalizeBoard() {
-		for (ScoreBoardRow row : scoreBoardTableRows.values()) {
-			row.finalizeScore();
-		}
 	}
 
 	public Map<Player, ScoreBoardRow> getScoreBoardTableRows() {

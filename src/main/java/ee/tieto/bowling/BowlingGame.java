@@ -54,14 +54,6 @@ public class BowlingGame {
 		startGame();
 	}
 
-	public void endPlaying() {
-		if (isGameOver()) {
-			return;
-		}
-		scoreBoard.finalizeBoard();
-		winner = scoreBoard.getWinner();
-	}
-
 	public void addScoreToCurrentPlayer(Integer score) {
 		if (gameHasStarted()) {
 			if (isGameOver()) {
@@ -94,6 +86,14 @@ public class BowlingGame {
 
 	public boolean isGameOver() {
 		return winner != null;
+	}
+
+	public void endPlaying() {
+		if (isGameOver()) {
+			return;
+		}
+		scoreBoard.finalizeBoard();
+		winner = scoreBoard.getWinner();
 	}
 
 	private void startGame() {

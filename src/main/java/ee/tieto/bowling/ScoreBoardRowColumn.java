@@ -52,6 +52,27 @@ public class ScoreBoardRowColumn {
 		}
 	}
 
+	public boolean canInsertScores() {
+		return !finalized && scores.size() < maxNumberOfScores;
+	}
+
+	protected boolean isColumnStateFinal() {
+		return hasStrike() || hasSpare() || isFull();
+	}
+
+	protected boolean isFull() {
+		return scores.size() == maxNumberOfScores;
+	}
+
+	protected boolean hasSpare() {
+		return scores.size() >= ScoreBoardRowColumn.DEFAULT_MAX_NUMBER_OF_SCORES &&
+				scores.get(0) + scores.get(1) == MAX_NUMBER_OF_PINS;
+	}
+
+	protected boolean hasStrike() {
+		return scores.size() == 1 && scores.get(0) == 10;
+	}
+
 	private void calculateDefaultScore() {
 		int score = scores.get(0) + scores.get(1);
 		setTotalScore(score);
@@ -87,30 +108,9 @@ public class ScoreBoardRowColumn {
 		}
 	}
 
-	protected boolean isColumnStateFinal() {
-		return hasStrike() || hasSpare() || isFull();
+	private void finalizeColumn() {
+		finalized = true;
 	}
-
-	protected boolean isFull() {
-        return scores.size() == maxNumberOfScores;
-    }
-
-    protected boolean hasSpare() {
-        return scores.size() >= ScoreBoardRowColumn.DEFAULT_MAX_NUMBER_OF_SCORES &&
-                scores.get(0) + scores.get(1) == MAX_NUMBER_OF_PINS;
-    }
-
-    protected boolean hasStrike() {
-		return scores.size() == 1 && scores.get(0) == 10;
-    }
-
-    private void finalizeColumn() {
-        finalized = true;
-    }
-
-    public boolean canInsertScores() {
-        return !finalized && scores.size() < maxNumberOfScores;
-    }
 
     public void setTotalScore(Integer totalScore) {
         this.totalScore = totalScore;
