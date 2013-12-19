@@ -67,6 +67,12 @@ public class ScoreBoard {
 		return winner;
 	}
 
+	public void finalizeBoard() {
+		for (ScoreBoardRow row : scoreBoardTableRows.values()) {
+			row.finalizeScore();
+		}
+	}
+
 	public Map<Player, ScoreBoardRow> getScoreBoardTableRows() {
 		return scoreBoardTableRows;
 	}

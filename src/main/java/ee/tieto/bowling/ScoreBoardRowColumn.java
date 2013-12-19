@@ -1,6 +1,6 @@
 package ee.tieto.bowling;
 
-import ee.tieto.bowling.exception.SquareIsFinalizedException;import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,9 +12,9 @@ import java.util.List;
 public class ScoreBoardRowColumn {
 
     public static final Integer DEFAULT_MAX_NUMBER_OF_SCORES = 2;
-    private static final Integer MAX_NUMBER_OF_PINS = 10;
+    public static final Integer MAX_NUMBER_OF_PINS = 10;
 
-    private Integer score;
+    private Integer totalScore;
     private boolean finalized = false;
     private Integer maxNumberOfScores = DEFAULT_MAX_NUMBER_OF_SCORES;
     private List<Integer> scores = new ArrayList<Integer>();
@@ -29,45 +29,82 @@ public class ScoreBoardRowColumn {
     public boolean insertScore(Integer score) {
         if (canInsertScores()) {
             scores.add(score);
-            if (columnHasStrike() || columnHasSpare() || columnIsFull()) {
+            if (isColumnStateFinal()) {
                 finalizeColumn();
                 return true;
             }
-
-            return false;
         }
 
-        throw new SquareIsFinalizedException("No more scores can be added to the scoreboard column");
+		return false;
     }
 
-    public boolean columnIsFull() {
+	public void calculateTotalScore(int index, List<ScoreBoardRowColumn> columns, boolean alwaysAssignScore) {
+		if (hasStrike()) {
+			calculateStrike(index, columns, alwaysAssignScore);
+		} else if (hasSpare()) {
+			calculateSpare(index, columns, alwaysAssignScore);
+		} else if (isFull()) {
+			calculateDefaultScore();
+		}
+
+		if (alwaysAssignScore && getTotalScore() == null) {
+			setTotalScore(getScores().get(0));
+		}
+	}
+
+	private void calculateDefaultScore() {
+		int score = scores.get(0) + scores.get(1);
+		setTotalScore(score);
+	}
+
+	private void calculateSpare(int index, List<ScoreBoardRowColumn> columns, boolean alwaysAssignScore) {
+		if (++index < columns.size()) {
+			int score = 10;
+			score += columns.get(index).getScores().get(0);
+			setTotalScore(score);
+		}
+
+		if (alwaysAssignScore && getTotalScore() == null) {
+			setTotalScore(ScoreBoardRowColumn.MAX_NUMBER_OF_PINS);
+		}
+	}
+
+	private void calculateStrike(int index, List<ScoreBoardRowColumn> columns, boolean alwaysAssignScore) {
+		Integer score = 0;
+		int summedScoresCount = 0;
+
+		int numberOfScoresToSummarize = 3;
+		while (summedScoresCount < numberOfScoresToSummarize && index < columns.size()) {
+			ScoreBoardRowColumn col = columns.get(index);
+			for (int i = 0; i < col.getScores().size() && summedScoresCount < numberOfScoresToSummarize; i++, summedScoresCount++) {
+				score += col.getScores().get(i);
+			}
+			index++;
+		}
+
+		if (summedScoresCount == numberOfScoresToSummarize || alwaysAssignScore) {
+			setTotalScore(score);
+		}
+	}
+
+	protected boolean isColumnStateFinal() {
+		return hasStrike() || hasSpare() || isFull();
+	}
+
+	protected boolean isFull() {
         return scores.size() == maxNumberOfScores;
     }
 
-    public boolean columnHasSpare() {
-        return scores.size() == ScoreBoardRowColumn.DEFAULT_MAX_NUMBER_OF_SCORES &&
+    protected boolean hasSpare() {
+        return scores.size() >= ScoreBoardRowColumn.DEFAULT_MAX_NUMBER_OF_SCORES &&
                 scores.get(0) + scores.get(1) == MAX_NUMBER_OF_PINS;
     }
 
-    public boolean columnHasStrike() {
-        int allowedNumberOfStrikes = (int) Math.ceil(maxNumberOfScores / DEFAULT_MAX_NUMBER_OF_SCORES);
-        boolean columnHasStrike = true;
-
-        if (scores.size() == allowedNumberOfStrikes) {
-            for (int i = 0; i < allowedNumberOfStrikes; i++) {
-                if (scores.get(i) != MAX_NUMBER_OF_PINS) {
-                    columnHasStrike = false;
-                    break;
-                }
-            }
-        } else {
-            columnHasStrike = false;
-        }
-
-        return columnHasStrike;
+    protected boolean hasStrike() {
+		return scores.size() == 1 && scores.get(0) == 10;
     }
 
-    public void finalizeColumn() {
+    private void finalizeColumn() {
         finalized = true;
     }
 
@@ -75,19 +112,16 @@ public class ScoreBoardRowColumn {
         return !finalized && scores.size() < maxNumberOfScores;
     }
 
-    public void setScore(Integer score) {
-        this.score = score;
+    public void setTotalScore(Integer totalScore) {
+        this.totalScore = totalScore;
     }
 
-    public Integer getScore() {
-        return score;
+    public Integer getTotalScore() {
+        return totalScore;
     }
 
     public List<Integer> getScores() {
         return scores;
     }
 
-    public Integer getMaxNumberOfScores() {
-        return maxNumberOfScores;
-    }
 }

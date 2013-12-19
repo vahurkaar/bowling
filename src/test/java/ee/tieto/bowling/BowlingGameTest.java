@@ -73,7 +73,7 @@ public class BowlingGameTest {
 	}
 
 	@Test(expected = GameHasAlreadyStartedException.class)
-	public void addingPlayerIsOnlyAllowedBeforeTheGameStarts() throws Exception {
+	public void addingPlayersIsOnlyAllowedBeforeTheGameStarts() throws Exception {
 		Player firstPlayer = new Player("Dummy player1");
 		Player secondPlayer = new Player("Dummy player2");
 
@@ -212,5 +212,19 @@ public class BowlingGameTest {
 
 		bowlingGame.addScoreToCurrentPlayer(10);
 		bowlingGame.addScoreToCurrentPlayer(10);
+	}
+
+	@Test
+	public void whenEndingGameSecondTimeThenDoNothing() throws Exception {
+		Player player = new Player("Dummy");
+		bowlingGame.addPlayer(player);
+		bowlingGame.startPlaying();
+		when(scoreBoard.getWinner()).thenReturn(player);
+
+		bowlingGame.endPlaying();
+		bowlingGame.endPlaying();
+
+		verify(scoreBoard, times(1)).finalizeBoard();
+		verify(scoreBoard, times(1)).getWinner();
 	}
 }

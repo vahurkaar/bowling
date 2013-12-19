@@ -14,22 +14,33 @@ import java.util.List;
 public class ScoreBoardRow {
 
     public static final Integer COLUMN_LIMIT = 10;
-    public static final Integer EXTRA_NUMBER_OF_ROWS = 3;
 
     private List<ScoreBoardRowColumn> columns = new ArrayList<ScoreBoardRowColumn>();
 
     public boolean insertScore(Integer score) {
-        boolean isNextPlayersTurn;
+        boolean giveTurnToOpponent;
 
         if (isFull()) {
             throw new ScoreBoardIsFullException("You cannot add any more scores to the table");
         }
 
-        isNextPlayersTurn = addScoreToRow(score);
+        giveTurnToOpponent = addScoreToRow(score);
         calculateScore();
 
-        return isNextPlayersTurn;
+        return giveTurnToOpponent;
     }
+
+	private boolean addScoreToRow(Integer score) {
+		boolean isNextPlayersTurn;
+		if (getLastColumn() != null && getLastColumn().canInsertScores()) {
+			isNextPlayersTurn = getLastColumn().insertScore(score);
+		} else {
+			ScoreBoardRowColumn column = createColumn();
+			columns.add(column);
+			isNextPlayersTurn = column.insertScore(score);
+		}
+		return isNextPlayersTurn;
+	}
 
     private void calculateScore() {
         if (isFull()) {
@@ -39,34 +50,22 @@ public class ScoreBoardRow {
         }
     }
 
-    private boolean addScoreToRow(Integer score) {
-        boolean isNextPlayersTurn;
-        if (getLastColumn() != null && getLastColumn().canInsertScores()) {
-            isNextPlayersTurn = getLastColumn().insertScore(score);
-        } else {
-            ScoreBoardRowColumn column = createColumn();
-            columns.add(column);
-            isNextPlayersTurn = column.insertScore(score);
-        }
-        return isNextPlayersTurn;
-    }
-
     private ScoreBoardRowColumn createColumn() {
         if (existsOneMoreSpareColumn()) {
-            return new ScoreBoardRowColumn(EXTRA_NUMBER_OF_ROWS);
+            return new ScoreBoardRowFinalColumn();
         } else {
             return new ScoreBoardRowColumn();
         }
     }
 
     private boolean existsOneMoreSpareColumn() {
-        return columns.size() - COLUMN_LIMIT == 1;
+        return COLUMN_LIMIT - columns.size() == 1;
     }
 
     public ScoreBoardRowColumn getLastColumn() {
         int numberOfColumns = columns.size();
 
-        if (!columns.isEmpty()) {
+        if (numberOfColumns > 0) {
             return columns.get(numberOfColumns - 1);
         }
 
@@ -81,7 +80,7 @@ public class ScoreBoardRow {
         Integer sum = 0;
 
         for (ScoreBoardRowColumn column : columns) {
-            Integer score = column.getScore();
+            Integer score = column.getTotalScore();
             if (score != null) {
                 sum += score;
             }
@@ -90,54 +89,10 @@ public class ScoreBoardRow {
         return sum;
     }
 
-    public void recalculateColumnScores(boolean alwaysAssignScore) {
+    private void recalculateColumnScores(boolean alwaysAssignScore) {
         for (int i = 0; i < columns.size(); i++) {
             ScoreBoardRowColumn column = columns.get(i);
-
-            if (column.columnHasStrike()) {
-                calculateStrike(i, columns, alwaysAssignScore);
-            } else if (column.columnHasSpare()) {
-                calculateSpare(i, columns, alwaysAssignScore);
-            } else if (column.columnIsFull()) {
-                calculateDefaultScore(column);
-            }
-        }
-    }
-
-    private void calculateDefaultScore(ScoreBoardRowColumn column) {
-        int score = column.getScores().get(0) + column.getScores().get(1);
-        column.setScore(score);
-    }
-
-    private void calculateSpare(int index, List<ScoreBoardRowColumn> columns, boolean alwaysAssignScore) {
-        ScoreBoardRowColumn column = columns.get(index);
-        if (++index < columns.size()) {
-            int score = 10;
-            score += columns.get(index).getScores().get(0);
-            column.setScore(score);
-        }
-
-        if (alwaysAssignScore && column.getScore() == null) {
-            column.setScore(10);
-        }
-    }
-
-    private void calculateStrike(int index, List<ScoreBoardRowColumn> columns, boolean alwaysAssignScore) {
-        ScoreBoardRowColumn column = columns.get(index);
-        Integer score = 0;
-        int summedScoresCount = 0;
-
-        int numberOfScoresToSummarize = 3;
-        while (summedScoresCount < numberOfScoresToSummarize && index < columns.size()) {
-            ScoreBoardRowColumn col = columns.get(index);
-            for (int i = 0; i < col.getScores().size() && summedScoresCount < numberOfScoresToSummarize; i++, summedScoresCount++) {
-                score += col.getScores().get(i);
-            }
-            index++;
-        }
-
-        if (summedScoresCount == numberOfScoresToSummarize || alwaysAssignScore) {
-            column.setScore(score);
+			column.calculateTotalScore(i, columns, alwaysAssignScore);
         }
     }
 

@@ -5,6 +5,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * Date: 19.12.13
  * Time: 10:53
@@ -22,16 +25,66 @@ public class ScoreBoardRowTest {
 
     @Test
     public void elevenStrikes() throws Exception {
-        for (int i = 0; i < 11; i++) {
-            scoreBoardRow.insertScore(10);
-        }
+		iterativelyInsertStrikes(11);
 
         Assert.assertEquals(new Integer(300), scoreBoardRow.getTotalScore());
         scoreBoardRow.finalizeScore();
         Assert.assertEquals(new Integer(300), scoreBoardRow.getTotalScore());
     }
 
-    @Test
+	@Test
+	public void tenStrikesAndASpare() throws Exception {
+		iterativelyInsertStrikes(10);
+		scoreBoardRow.insertScore(3);
+		scoreBoardRow.insertScore(7);
+
+		Assert.assertEquals(new Integer(293), scoreBoardRow.getTotalScore());
+		scoreBoardRow.finalizeScore();
+		Assert.assertEquals(new Integer(293), scoreBoardRow.getTotalScore());
+	}
+
+	@Test
+	public void nineStrikesAndASpareAndAStrike() throws Exception {
+		iterativelyInsertStrikes(9);
+		scoreBoardRow.insertScore(4);
+		scoreBoardRow.insertScore(6);
+		scoreBoardRow.insertScore(10);
+
+		Assert.assertEquals(new Integer(284), scoreBoardRow.getTotalScore());
+		scoreBoardRow.finalizeScore();
+		Assert.assertEquals(new Integer(284), scoreBoardRow.getTotalScore());
+	}
+
+	@Test
+	public void nineStrikesAndAnOpen() throws Exception {
+		iterativelyInsertStrikes(9);
+		scoreBoardRow.insertScore(1);
+		scoreBoardRow.insertScore(3);
+
+		Assert.assertEquals(new Integer(249), scoreBoardRow.getTotalScore());
+		scoreBoardRow.finalizeScore();
+		Assert.assertEquals(new Integer(249), scoreBoardRow.getTotalScore());
+	}
+
+	@Test
+	public void nineStrikesAndASpareAndASingle() throws Exception {
+		iterativelyInsertStrikes(9);
+		scoreBoardRow.insertScore(2);
+		scoreBoardRow.insertScore(8);
+		scoreBoardRow.insertScore(2);
+
+		Assert.assertEquals(new Integer(266), scoreBoardRow.getTotalScore());
+		scoreBoardRow.finalizeScore();
+		Assert.assertEquals(new Integer(266), scoreBoardRow.getTotalScore());
+	}
+
+	private void iterativelyInsertStrikes(int count) {
+		for (int i = 0; i < count; i++) {
+			scoreBoardRow.insertScore(10);
+		}
+	}
+
+	@Test
 	public void threeStrikes() throws Exception {
 		scoreBoardRow.insertScore(10);
 		scoreBoardRow.insertScore(10);
@@ -148,9 +201,35 @@ public class ScoreBoardRowTest {
 	}
 
 	@Test
+	public void finalizingRowInTheMiddleOfTheRound() throws Exception {
+		scoreBoardRow.insertScore(5);
+		scoreBoardRow.insertScore(5);
+		scoreBoardRow.insertScore(10);
+		scoreBoardRow.insertScore(10);
+		scoreBoardRow.insertScore(3);
+
+		Assert.assertEquals(new Integer(43), scoreBoardRow.getTotalScore());
+		scoreBoardRow.finalizeScore();
+		Assert.assertEquals(new Integer(59), scoreBoardRow.getTotalScore());
+	}
+
+	@Test
+	public void finalizingAtTheLastRound() throws Exception {
+		iterativelyInsertStrikes(9);
+		scoreBoardRow.insertScore(3);
+
+		Assert.assertEquals(new Integer(233), scoreBoardRow.getTotalScore());
+		scoreBoardRow.finalizeScore();
+		Assert.assertEquals(new Integer(249), scoreBoardRow.getTotalScore());
+	}
+
+	@Test
 	public void rowIsFull() throws Exception {
 		for (int i = 0; i < ScoreBoardRow.COLUMN_LIMIT; i++) {
-			scoreBoardRow.getColumns().add(new ScoreBoardRowColumn());
+
+			ScoreBoardRowColumn column = mock(ScoreBoardRowColumn.class);
+			when(column.canInsertScores()).thenReturn(false);
+			scoreBoardRow.getColumns().add(column);
 		}
 
 		Assert.assertTrue(scoreBoardRow.isFull());
@@ -166,8 +245,8 @@ public class ScoreBoardRowTest {
 	}
 
     @Test(expected = ScoreBoardIsFullException.class)
-    public void cannotInsertMoreThanElevenCells() throws Exception {
-        for (int i = 0; i < 13; i++) {
+    public void cannotInsertMoreThanTenCells() throws Exception {
+        for (int i = 0; i < 12; i++) {
             scoreBoardRow.insertScore(10);
         }
     }

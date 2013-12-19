@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -35,7 +36,7 @@ public class ScoreBoardTest {
 	}
 
 	@Test(expected = PlayerDoesNotExistException.class)
-	public void insertPlayerScoreWhenPlayerDoesNotExist() throws Exception {
+	public void insertingPlayerScoreThrowsExceptionWhenPlayerDoesNotExist() throws Exception {
 		Player player = new Player("Dummy");
 		scoreBoard.insertPlayerScore(player, 1);
 	}
@@ -48,7 +49,7 @@ public class ScoreBoardTest {
 	}
 
 	@Test(expected = ScoreBoardIsFullException.class)
-	public void insertPlayerScoreWhenTableIsFull() throws Exception {
+	public void insertingPlayerScoreThrowsExceptionWhenTableIsFull() throws Exception {
 		ScoreBoardRow row = mock(ScoreBoardRow.class);
 		when(row.isFull()).thenReturn(true);
 		Player player = new Player("Dummy");
@@ -100,5 +101,22 @@ public class ScoreBoardTest {
 		scoreBoard.getScoreBoardTableRows().put(secondPlayer, secondRow);
 
 		Assert.assertEquals(secondPlayer, scoreBoard.getWinner());
+	}
+
+	@Test
+	public void finalizeBoardTest() throws Exception {
+		Player firstPlayer = new Player("Dummy 1");
+		Player secondPlayer = new Player("Dummy 2");
+
+		ScoreBoardRow firstRow = mock(ScoreBoardRow.class);
+		ScoreBoardRow secondRow = mock(ScoreBoardRow.class);
+
+		scoreBoard.getScoreBoardTableRows().put(firstPlayer, firstRow);
+		scoreBoard.getScoreBoardTableRows().put(secondPlayer, secondRow);
+
+		scoreBoard.finalizeBoard();
+
+		verify(firstRow).finalizeScore();
+		verify(secondRow).finalizeScore();
 	}
 }
