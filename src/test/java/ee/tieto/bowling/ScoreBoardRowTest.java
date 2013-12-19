@@ -1,5 +1,6 @@
 package ee.tieto.bowling;
 
+import ee.tieto.bowling.exception.ScoreBoardIsFullException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,13 +20,24 @@ public class ScoreBoardRowTest {
 		scoreBoardRow = new ScoreBoardRow();
 	}
 
-	@Test
+    @Test
+    public void elevenStrikes() throws Exception {
+        for (int i = 0; i < 11; i++) {
+            scoreBoardRow.insertScore(10);
+        }
+
+        Assert.assertEquals(new Integer(300), scoreBoardRow.getTotalScore());
+        scoreBoardRow.finalizeScore();
+        Assert.assertEquals(new Integer(300), scoreBoardRow.getTotalScore());
+    }
+
+    @Test
 	public void threeStrikes() throws Exception {
 		scoreBoardRow.insertScore(10);
 		scoreBoardRow.insertScore(10);
 		scoreBoardRow.insertScore(10);
 
-		Assert.assertEquals(new Integer(10), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(30), scoreBoardRow.getTotalScore());
 		scoreBoardRow.finalizeScore();
 		Assert.assertEquals(new Integer(60), scoreBoardRow.getTotalScore());
 	}
@@ -37,25 +49,25 @@ public class ScoreBoardRowTest {
 		scoreBoardRow.insertScore(5);
 		scoreBoardRow.insertScore(5);
 
-		Assert.assertEquals(new Integer(30), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(45), scoreBoardRow.getTotalScore());
 		scoreBoardRow.finalizeScore();
-		Assert.assertEquals(new Integer(50), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(55), scoreBoardRow.getTotalScore());
 	}
 
 	@Test
-	public void twoStrikesAndASplit() throws Exception {
+	public void twoStrikesAndAnOpen() throws Exception {
 		scoreBoardRow.insertScore(10);
 		scoreBoardRow.insertScore(10);
 		scoreBoardRow.insertScore(5);
 		scoreBoardRow.insertScore(2);
 
-		Assert.assertEquals(new Integer(25), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(49), scoreBoardRow.getTotalScore());
 		scoreBoardRow.finalizeScore();
-		Assert.assertEquals(new Integer(39), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(49), scoreBoardRow.getTotalScore());
 	}
 
 	@Test
-	public void strikeAndTwoSplits() throws Exception {
+	public void strikeAndTwoSpares() throws Exception {
 		scoreBoardRow.insertScore(10);
 		scoreBoardRow.insertScore(5);
 		scoreBoardRow.insertScore(5);
@@ -68,29 +80,29 @@ public class ScoreBoardRowTest {
 	}
 
 	@Test
-	public void strikeAndASplitAndASpare() throws Exception {
+	public void strikeAndASpareAndAnOpen() throws Exception {
 		scoreBoardRow.insertScore(10);
 		scoreBoardRow.insertScore(5);
 		scoreBoardRow.insertScore(5);
 		scoreBoardRow.insertScore(6);
 		scoreBoardRow.insertScore(2);
 
-		Assert.assertEquals(new Integer(36), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(44), scoreBoardRow.getTotalScore());
 		scoreBoardRow.finalizeScore();
 		Assert.assertEquals(new Integer(44), scoreBoardRow.getTotalScore());
 	}
 
 	@Test
-	public void strikeAndTwoSpares() throws Exception {
+	public void strikeAndTwoOpens() throws Exception {
 		scoreBoardRow.insertScore(10);
 		scoreBoardRow.insertScore(5);
 		scoreBoardRow.insertScore(2);
 		scoreBoardRow.insertScore(6);
 		scoreBoardRow.insertScore(4);
 
-		Assert.assertEquals(new Integer(27), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(24), scoreBoardRow.getTotalScore());
 		scoreBoardRow.finalizeScore();
-		Assert.assertEquals(new Integer(27), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(34), scoreBoardRow.getTotalScore());
 	}
 
 	@Test
@@ -108,7 +120,7 @@ public class ScoreBoardRowTest {
 	}
 
 	@Test
-	public void twoSparesAndOneSplit() throws Exception {
+	public void twoSparesAndOneOpen() throws Exception {
 		scoreBoardRow.insertScore(5);
 		scoreBoardRow.insertScore(5);
 		scoreBoardRow.insertScore(2);
@@ -116,13 +128,13 @@ public class ScoreBoardRowTest {
 		scoreBoardRow.insertScore(4);
 		scoreBoardRow.insertScore(2);
 
-		Assert.assertEquals(new Integer(28), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(32), scoreBoardRow.getTotalScore());
 		scoreBoardRow.finalizeScore();
-		Assert.assertEquals(new Integer(28), scoreBoardRow.getTotalScore());
+		Assert.assertEquals(new Integer(32), scoreBoardRow.getTotalScore());
 	}
 
 	@Test
-	public void spareAndTwoSplits() throws Exception {
+	public void spareAndTwoOpens() throws Exception {
 		scoreBoardRow.insertScore(7);
 		scoreBoardRow.insertScore(3);
 		scoreBoardRow.insertScore(5);
@@ -137,7 +149,7 @@ public class ScoreBoardRowTest {
 
 	@Test
 	public void rowIsFull() throws Exception {
-		for (int i = 0; i < ScoreBoardRow.ROW_LIMIT; i++) {
+		for (int i = 0; i < ScoreBoardRow.COLUMN_LIMIT; i++) {
 			scoreBoardRow.getColumns().add(new ScoreBoardRowColumn());
 		}
 
@@ -152,4 +164,11 @@ public class ScoreBoardRowTest {
 
 		Assert.assertFalse(scoreBoardRow.isFull());
 	}
+
+    @Test(expected = ScoreBoardIsFullException.class)
+    public void cannotInsertMoreThanElevenCells() throws Exception {
+        for (int i = 0; i < 13; i++) {
+            scoreBoardRow.insertScore(10);
+        }
+    }
 }
