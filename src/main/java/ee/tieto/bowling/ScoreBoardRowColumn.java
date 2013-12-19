@@ -19,7 +19,12 @@ public class ScoreBoardRowColumn {
     private Integer maxNumberOfScores = DEFAULT_MAX_NUMBER_OF_SCORES;
     private List<Integer> scores = new ArrayList<Integer>();
 
-    public ScoreBoardRowColumn() {}
+    public ScoreBoardRowColumn() {
+    }
+
+    public ScoreBoardRowColumn(Integer limit) {
+        maxNumberOfScores = limit;
+    }
 
     public boolean insertScore(Integer score) {
         if (canInsertScores()) {
@@ -45,7 +50,21 @@ public class ScoreBoardRowColumn {
     }
 
     public boolean columnHasStrike() {
-        return scores.size() == 1 && scores.get(0).equals(MAX_NUMBER_OF_PINS);
+        int allowedNumberOfStrikes = (int) Math.ceil(maxNumberOfScores / DEFAULT_MAX_NUMBER_OF_SCORES);
+        boolean columnHasStrike = true;
+
+        if (scores.size() == allowedNumberOfStrikes) {
+            for (int i = 0; i < allowedNumberOfStrikes; i++) {
+                if (scores.get(i) != MAX_NUMBER_OF_PINS) {
+                    columnHasStrike = false;
+                    break;
+                }
+            }
+        } else {
+            columnHasStrike = false;
+        }
+
+        return columnHasStrike;
     }
 
     public void finalizeColumn() {

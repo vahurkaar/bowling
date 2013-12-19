@@ -14,6 +14,7 @@ import java.util.List;
 public class ScoreBoardRow {
 
     public static final Integer COLUMN_LIMIT = 10;
+    public static final Integer EXTRA_NUMBER_OF_ROWS = 3;
 
     private List<ScoreBoardRowColumn> columns = new ArrayList<ScoreBoardRowColumn>();
 
@@ -43,11 +44,23 @@ public class ScoreBoardRow {
         if (getLastColumn() != null && getLastColumn().canInsertScores()) {
             isNextPlayersTurn = getLastColumn().insertScore(score);
         } else {
-            ScoreBoardRowColumn column = new ScoreBoardRowColumn();
+            ScoreBoardRowColumn column = createColumn();
             columns.add(column);
             isNextPlayersTurn = column.insertScore(score);
         }
         return isNextPlayersTurn;
+    }
+
+    private ScoreBoardRowColumn createColumn() {
+        if (existsOneMoreSpareColumn()) {
+            return new ScoreBoardRowColumn(EXTRA_NUMBER_OF_ROWS);
+        } else {
+            return new ScoreBoardRowColumn();
+        }
+    }
+
+    private boolean existsOneMoreSpareColumn() {
+        return columns.size() - COLUMN_LIMIT == 1;
     }
 
     public ScoreBoardRowColumn getLastColumn() {
@@ -61,7 +74,7 @@ public class ScoreBoardRow {
     }
 
     public boolean isFull() {
-        return columns.size() >= COLUMN_LIMIT;
+        return columns.size() >= COLUMN_LIMIT && !getLastColumn().canInsertScores();
     }
 
     public Integer getTotalScore() {
